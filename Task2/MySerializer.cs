@@ -8,48 +8,48 @@ using OCP.Task2.Models;
 
 namespace OCP.Task2
 {
-    public class MySerializer : ISerializer
+   public class MySerializer : ISerializer
+{
+    private TEntity Deserialize<TEntity>(string entity, DataContractSerializer serializer)
     {
-        public string SerializeJSON<TEntity>(TEntity entity)
-            where TEntity : Person
+        using (MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(entity)))
         {
-            using (MemoryStream ms = new MemoryStream())
-            {
-                DataContractJsonSerializer ser = new DataContractJsonSerializer(typeof(TEntity));
-                ser.WriteObject(ms, entity);
-                return Encoding.UTF8.GetString(ms.ToArray());
-            }
-        }
-
-        public TEntity DeserializeJSON<TEntity>(string entity)
-            where TEntity : Person
-        {
-            DataContractJsonSerializer ser = new DataContractJsonSerializer(typeof(TEntity));
-            using (MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(entity)))
-            {
-                return ser.ReadObject(stream) as TEntity;
-            }
-        }
-
-        public string SerializeXML<TEntity>(TEntity entity)
-            where TEntity : Person
-        {
-            using (MemoryStream ms = new MemoryStream())
-            {
-                DataContractSerializer ser = new DataContractSerializer(typeof(TEntity));
-                ser.WriteObject(ms, entity);
-                return Encoding.UTF8.GetString(ms.ToArray());
-            }
-        }
-
-        public TEntity DeserializeXML<TEntity>(string entity)
-            where TEntity : Person
-        {
-            DataContractSerializer ser = new DataContractSerializer(typeof(TEntity));
-            using (MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(entity)))
-            {
-                return ser.ReadObject(stream) as TEntity;
-            }
+            return (TEntity)serializer.ReadObject(stream);
         }
     }
+
+    private string Serialize<TEntity>(TEntity entity, DataContractSerializer serializer)
+    {
+        using (MemoryStream ms = new MemoryStream())
+        {
+            serializer.WriteObject(ms, entity);
+            return Encoding.UTF8.GetString(ms.ToArray());
+        }
+    }
+
+    public string SerializeJSON<TEntity>(TEntity entity)
+    {
+        DataContractJsonSerializer jsonSerializer = new DataContractJsonSerializer(typeof(TEntity));
+        return Serialize(entity, jsonSerializer);
+    }
+
+    public TEntity DeserializeJSON<TEntity>(string entity)
+    {
+        DataContractJsonSerializer jsonSerializer = new DataContractJsonSerializer(typeof(TEntity));
+        return Deserialize<TEntity>(entity, jsonSerializer);
+    }
+
+    public string SerializeXML<TEntity>(TEntity entity)
+    {
+        DataContractSerializer xmlSerializer = new DataContractSerializer(typeof(TEntity));
+        return Serialize(entity, xmlSerializer);
+    }
+
+    public TEntity DeserializeXML<TEntity>(string entity)
+    {
+        DataContractSerializer xmlSerializer = new DataContractSerializer(typeof(TEntity));
+        return Deserialize<TEntity>(entity, xmlSerializer);
+    }
+}
+
 }
